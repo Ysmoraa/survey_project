@@ -1,0 +1,73 @@
+{% extends 'survey_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Resultados de: {{ survey.title }}</h1>
+    <p class="lead">{{ survey.description }}</p>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Estadísticas Generales</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h6>Total Respuestas</h6>
+                        <p class="display-4">{{ total_responses }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h6>Fecha de creación</h6>
+                        <p>{{ survey.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h6>Estado</h6>
+                        <span class="badge {% if survey.is_published %}bg-success{% else %}bg-warning{% endif %}">
+                            {{ survey.is_published|yesno:"Publicada,Borrador" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for question in questions %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>{{ question.text }}</h5>
+            <small class="text-muted">Tipo: {{ question.get_question_type_display }}</small>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="position: relative; height:400px; width:100%">
+                <canvas id="chart-{{ question.id }}" 
+                        data-question-type="{{ question.question_type }}"
+                        {% if question.question_type == 'text' %}
+                            data-answers="{% for answer in question.text_answers %}{{ answer|escape }}|||{% endfor %}"
+                        {% elif question.question_type == 'multiple' %}
+                            data-options="{% for option in question.options %}{{ option.text|escape }}:::{{ option.answer_count }}|||{% endfor %}"
+                        {% elif question.question_type == 'escala' %}
+                            data-ratings="{% for star in question.rating_distribution %}{{ star.value }}:::{{ star.count }}:::{{ star.percentage }}|||{% endfor %}"
+                        {% endif %}>
+                </canvas>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'survey_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver a encuestas
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'survey_app/js/survey-results.js' %}"></script>
+{% endblock %}

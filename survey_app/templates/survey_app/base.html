@@ -1,0 +1,45 @@
+<!-- survey_app/templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Encuestas{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'survey_app/css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Sistema de Encuestas</h1>
+    {% if user.is_authenticated %}
+        <div class="user-info">
+            <span class="username">¡Hola, {{ user.username }}!</span>
+            <form action="{% url 'logout' %}" method="post" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Cerrar sesión</button>
+            </form>
+        </div>
+    {% else %}
+        <a href="{% url 'login' %}" class="login-link">Iniciar sesión</a>
+    {% endif %}
+    {% if user.is_staff %}
+    <nav class="staff-nav">
+        <a href="{% url 'admin_survey' %}" class="nav-link">Admin Encuestas</a>
+    </nav>
+    {% endif %}
+    </header>
+    
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <footer>
+        <p>Sistema de Encuestas &copy; {% now "Y" %}</p>
+    </footer>
+    
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

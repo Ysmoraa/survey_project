@@ -1,0 +1,179 @@
+
+{% extends 'survey_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <a href="{% url 'survey_list' %}" class="btn btn-secondary mb-4">
+        <i class="fas fa-arrow-left"></i> Volver al listado
+    </a>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">
+                <i class="fas fa-{% if edit_mode %}edit{% else %}plus-circle{% endif %}"></i>
+                {% if edit_mode %}Editar{% else %}Crear{% endif %} Encuesta
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="post" id="surveyForm" novalidate>
+                {% csrf_token %}
+                
+                <!-- Sección de información básica -->
+                <div class="form-group mb-4">
+                    <label for="survey_title" class="font-weight-bold">Título de la Encuesta *</label>
+                    <input type="text" id="survey_title" name="title" class="form-control form-control-lg" 
+                           value="{{ survey.title|default:'' }}" required aria-required="true">
+                    <small class="form-text text-muted">Ejemplo: 'Satisfacción del cliente 2023'</small>
+                </div>
+                
+                <div class="form-group mb-4">
+                    <label for="survey_description" class="font-weight-bold">Descripción</label>
+                    <textarea id="survey_description" name="description" class="form-control" rows="3"
+                              placeholder="Describe el propósito de esta encuesta" aria-describedby="descHelp">{{ survey.description|default:'' }}</textarea>
+                    <small id="descHelp" class="form-text text-muted">Proporciona contexto sobre esta encuesta</small>
+                </div>
+                
+                <!-- Sección de preguntas (solo en modo edición) -->
+                {% if edit_mode %}
+                <div class="form-group mb-4 border-top pt-3">
+                    <h5 class="mb-3">
+                        <i class="fas fa-question-circle"></i> Preguntas
+                    </h5>
+                    
+                    <button type="button" id="addQuestionBtn" class="btn btn-primary mb-3">
+                        <i class="fas fa-plus"></i> Agregar Pregunta
+                    </button>
+                    
+                    <div id="questionsList" class="questions-container">
+                        {% for question in survey.questions.all %}
+                        <div class="question-item card mb-3" data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="question_text_{{ question.id }}" class="font-weight-bold">Texto de la pregunta *</label>
+                                    <input type="text" id="question_text_{{ question.id }}" name="question_text_{{ question.id }}" 
+                                           value="{{ question.text }}" class="form-control" 
+                                           placeholder="¿Cuál es tu opinión sobre...?" required aria-required="true">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="question_type_{{ question.id }}" class="font-weight-bold">Tipo de pregunta *</label>
+                                    <select id="question_type_{{ question.id }}" name="question_type_{{ question.id }}" class="form-control question-type-select" required aria-required="true">
+                                        <option value="">-- Selecciona un tipo --</option>
+                                        <option value="text" {% if question.question_type == 'text' %}selected{% endif %}>Texto Libre</option>
+                                        <option value="multiple" {% if question.question_type == 'multiple' %}selected{% endif %}>Opción Múltiple</option>
+                                        <option value="escala" {% if question.question_type == 'escala' %}selected{% endif %}>Escala de Valoración (1-5)</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Contenedor dinámico para opciones -->
+                                <div class="tipo-detalle mt-3" data-question-id="{{ question.id }}">
+                                    {% if question.question_type == 'multiple' %}
+                                    <div class="options-container">
+                                        <p class="font-weight-bold">Opciones de respuesta *</p>
+                                        <div class="option-inputs">
+                                            {% for option in question.options.all %}
+                                                <div class="input-group mb-2 option-group">
+                                                    <input type="text" name="option_{{ question.id }}_{{ forloop.counter0 }}" 
+                                                           class="form-control" value="{{ option.text }}" required>
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-outline-danger remove-option-btn">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary add-option-btn">
+                                            <i class="fas fa-plus"></i> Añadir otra opción
+                                        </button>
+                                    </div>
+                                    {% elif question.question_type == 'escala' %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> Los encuestados podrán seleccionar un valor del 1 al 5
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="text-right mt-3">
+                                    <button type="button" class="btn btn-danger btn-sm remove-question-btn" aria-label="Eliminar pregunta">
+                                        <i class="fas fa-trash-alt"></i> Eliminar Pregunta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No hay preguntas añadidas aún
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Botones de acción -->
+                <div class="form-group mt-4 border-top pt-3">
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" name="save" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> {% if edit_mode %}Guardar Cambios{% else %}Crear Encuesta{% endif %}
+                        </button>
+                        
+                        {% if edit_mode %}
+                        <button type="submit" name="publish" class="btn btn-success btn-lg">
+                            <i class="fas fa-globe"></i> {{ survey.is_published|yesno:"Actualizar Publicación,Publicar Encuesta" }}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'survey_app/js/create_survey.js' %}"></script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .question-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid #007bff;
+    }
+    
+    .question-item:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .tipo-detalle {
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1rem;
+    }
+    
+    .option-group {
+        transition: all 0.2s ease;
+    }
+    
+    .questions-container {
+        max-height: 60vh;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    /* Scrollbar personalizada */
+    .questions-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .questions-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .questions-container::-webkit-scrollbar-thumb {
+        background: #007bff;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

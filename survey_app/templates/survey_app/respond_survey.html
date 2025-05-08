@@ -1,0 +1,60 @@
+<!-- survey_app/templates/respond_survey.html -->
+{% extends 'survey_app/base.html' %}
+{% load static %}
+
+
+{% block content %}
+{% if thank_you %}
+<div class="thank-you-message">
+    <h2>¡Gracias por completar la encuesta!</h2>
+    <p>Tus respuestas han sido registradas.</p>
+    <a href="{% url 'survey_list' %}" class="btn">Volver a la página principal</a>
+</div>
+{% else %}
+<div class="survey-container">
+    <h1 id="surveyTitle">{{ survey.title }}</h1>
+    <p>{{ survey.description }}</p>
+    
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+    
+    <form method="post" id="surveyForm">
+        {% csrf_token %}
+        
+        {% for question in survey.questions.all %}
+        <div class="question" id="question-{{ forloop.counter }}" {% if forloop.counter != 1 %}style="display:none;"{% endif %}>
+            <label for="question_{{ question.id }}">{{ question.text }}</label>
+            
+            {% if question.question_type == 'text' %}
+                <input type="text" id="question_{{ question.id }}" name="question_{{ question.id }}" required>
+            {% elif question.question_type == 'multiple' %}
+                <select id="question_{{ question.id }}" name="question_{{ question.id }}" required>
+                    {% for option in question.options.all %}
+                    <option value="{{ option.id }}">{{ option.text }}</option>
+                    {% endfor %}
+                </select>
+            {% elif question.question_type == 'escala' %}
+                <select id="question_{{ question.id }}" name="question_{{ question.id }}" required>
+                    {% for i in "12345" %}
+                    <option value="{{ i }}">{{ i }} ⭐</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="navigation-buttons">
+            <button type="button" class="prev-btn" id="prevBtn">Anterior</button>
+            <button type="button" class="next-btn" id="nextBtn">Siguiente</button>
+        </div>
+        
+        <button type="submit" class="submit-btn" id="submitBtn">Enviar Respuestas</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'survey_app/js/respond_survey.js' %}"></script>
+{% endblock %}

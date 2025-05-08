@@ -1,0 +1,68 @@
+{% extends 'survey_app/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Administrador de Encuestas{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'survey_app/css/admin_survey.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Dashboard Administrador de Encuestas</h2>
+    
+    <div class="survey-actions">
+        <a href="{% url 'create_survey' %}" class="btn btn-primary">Crear Nueva Encuesta</a>
+    </div>
+    
+    <table class="survey-table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for survey in surveys %}
+            <tr>
+                <td>{{ survey.title }}</td>
+                <td>
+                    <span class="status-badge {% if survey.is_published %}active{% else %}inactive{% endif %}">
+                        {% if survey.is_published %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td class="action-buttons">
+                    <a href="{% url 'edit_survey' survey.id %}" class="btn btn-edit">Editar</a>
+                    <form action="{% url 'delete_survey' survey.id %}" method="post" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-delete">Eliminar</button>
+                    </form>
+                    {% if survey.is_published %}
+                    <a href="{% url 'survey_results' survey.id %}" class="btn btn-results">Ver resultados</a>
+                    {% endif %}
+                    {% if not survey.is_published %}
+                    <form action="{% url 'publish_survey' survey.id %}" method="post" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-publish">Publicar</button>
+                    </form>
+                    {% else %}
+                    <form action="{% url 'unpublish_survey' survey.id %}" method="post" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-unpublish">Despublicar</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No hay encuestas creadas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'survey_app/js/admin_survey.js' %}"></script>
+{% endblock %}

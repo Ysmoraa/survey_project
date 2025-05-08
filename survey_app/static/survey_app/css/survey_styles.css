@@ -1,0 +1,48 @@
+/* Estilos para preguntas */
+.question-item {
+    transition: all 0.3s ease;
+}
+
+.question-item:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.tipo-detalle {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.options-container {
+    margin-top: 0.5rem;
+}
+
+.option-inputs input {
+    margin-bottom: 0.5rem;
+}
+
+/* Botones */
+.add-question-btn {
+    margin-bottom: 1.5rem;
+}
+
+.remove-question-btn {
+    margin-top: 1rem;
+}
+
+/* Efectos para mejor UX */
+.btn {
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Asegurar que los íconos tengan espacio */
+.fas {
+    margin-right: 0.3rem;
+}
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
