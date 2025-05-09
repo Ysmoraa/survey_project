@@ -1,1 +1,1 @@
-web: gunicorn survey_project.wsgi
+web: gunicorn survey_project.wsgi:application
