@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'survey_project.urls'
@@ -138,8 +139,23 @@ import dj_database_url
 DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Middleware para servir archivos estáticos
-MIDDLEWARE += ['whitenoise.middleware.WhiteNoiseMiddleware']
 
 # Archivos estáticos
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+import os
+
+# La URL que será usada para acceder a archivos estáticos
+STATIC_URL = '/static/'
+
+# Esta es la ruta donde los archivos estáticos serán recogidos cuando corras collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Si necesitas servir archivos estáticos en producción, asegúrate de tener configurado esto:
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Si quieres usar el almacenamiento de archivos estáticos con hash (útil para caching)
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
