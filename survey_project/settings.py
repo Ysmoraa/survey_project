@@ -153,3 +153,8 @@ STATICFILES_DIRS = [
 # Si quieres usar el almacenamiento de archivos estáticos con hash (útil para caching)
 if not DEBUG:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+
+CSRF_TRUSTED_ORIGINS = [
+  'https://surveyproject-production.up.railway.app',
+]
